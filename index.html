@@ -1,39 +1,67 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Football Signal AI v20</title><link rel="stylesheet" href="/styles.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Football Signal AI Basic</title>
+<style>
+:root{--bg:#eef5f8;--card:#fff;--text:#17212b;--muted:#647383;--blue:#2867c7;--green:#159c69;--red:#e5484d;--line:#d4dee5}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Arial,sans-serif;color:var(--text)}
+.app{max-width:760px;margin:auto;padding:18px}.top,.head,.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+h1{margin:0;font-size:28px}.basic{color:var(--blue);font-weight:800;font-size:25px}.sub{color:var(--muted);margin:3px 0 15px}
+.robot{background:#e9faf2;color:#087a50;border:1px solid #a9dfc8;border-radius:25px;padding:12px 16px;font-weight:800;white-space:nowrap}
+.dot{display:inline-block;width:12px;height:12px;background:#20c982;border-radius:50%;margin-right:7px;box-shadow:0 0 10px #20c982}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:18px;margin:15px 0;box-shadow:0 8px 24px #16324a10}
+h2{margin:0 0 15px}.filters{display:flex;gap:8px;overflow:auto;padding-bottom:7px}
+button,select,input{border:1px solid #c9d5dd;background:#fff;border-radius:15px;padding:12px 14px;font-size:15px}
+button{font-weight:700}.active{border-color:#76a7ef;color:#1757b1;background:#f3f7ff}.live{color:#b72d34}
+.tools{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:10px 0}.tools input,.tools select{width:100%}
+.status{color:var(--muted);font-size:14px}.games{margin-top:12px}.league{font-weight:800;color:#38516a;margin:18px 2px 8px}
+.game{border:1px solid var(--line);border-radius:17px;padding:14px;margin:8px 0;background:#fbfdff}
+.teams{font-size:17px;font-weight:800}.meta{font-size:13px;color:var(--muted);margin-top:5px}
+.probs{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:12px}.prob{background:#f0f5f8;border-radius:12px;padding:9px;text-align:center;font-size:13px}.prob b{display:block;font-size:18px}
+.conf{margin-top:10px;padding:9px;border-radius:11px;background:#eaf8f1;color:#087a50;font-weight:800;text-align:center}
+.notice{padding:13px;border-radius:14px;background:#fff5f5;color:#9f3036;margin-top:12px;display:none}
+@media(max-width:520px){.top{align-items:flex-start}h1{font-size:24px}.robot{font-size:13px}.tools{grid-template-columns:1fr}.app{padding:13px}}
+</style>
 </head>
 <body>
 <main class="app">
-  <header class="top">
-    <div class="brand"><h1>⚽ Football Signal AI <span style="color:#ff4057">v20</span></h1><p>Agenda mundial • análise multi-fator • dados em tempo quase real</p></div>
-    <div class="robot"><span class="dot"></span><span id="robotText">ROBÔ ATIVO</span></div>
-  </header>
+<div class="top"><div><h1>⚽ Football Signal AI</h1><div class="basic">BASIC</div><div class="sub">Principais campeonatos • ao vivo • probabilidades</div></div><div class="robot"><span class="dot"></span>ROBÔ ATIVO</div></div>
 
-  <section class="panel" id="configPanel">
-    <div class="panel-head"><h2>🔐 Fontes</h2><button class="btn ghost" id="toggleConfig">ocultar</button></div>
-    <div id="configBody">
-      <div class="config-grid">
-        <div class="field"><label>Sportmonks token</label><input id="sm" type="password" placeholder="Fonte principal"></div>
-        <div class="field"><label>football-data.org token</label><input id="fd" type="password" placeholder="Fallback de jogos"></div>
-        <div class="field"><label>The Odds API key</label><input id="odds" type="password" placeholder="Reservada para odds extra"></div>
-      </div>
-      <div class="actions"><button class="btn primary" id="save">Salvar e atualizar</button><button class="btn" id="clear">Apagar</button></div>
-      <div class="mut" style="margin-top:7px">Você também pode configurar as chaves como variáveis de ambiente na Vercel.</div>
-    </div>
-  </section>
-
-  <section class="panel">
-    <div class="panel-head"><h2>📅 Jogos</h2><span class="mut" id="updated">—</span></div>
-    <div class="days" id="days"></div>
-    <div class="tools"><input id="search" placeholder="Buscar time ou campeonato"><select id="league"><option value="">Todos os campeonatos</option></select></div>
-    <div class="summary"><b id="count">0 jogos</b><div class="source-badges" id="sources"></div></div>
-    <div id="games"><div class="empty">Configure uma fonte para carregar os jogos.</div></div>
-  </section>
-
-  <div class="footer">Probabilidades são estimativas, não garantias. “Alta confiança” significa maior cobertura e concordância entre os dados disponíveis — não certeza do resultado.</div>
+<section class="card">
+<div class="head"><h2>📅 Jogos</h2><button onclick="loadGames()">Atualizar agora</button></div>
+<div class="filters" id="days"></div>
+<div class="filters" style="margin-top:8px">
+<button class="live" onclick="setLeague('LIVE')">🔴 Ao vivo</button>
+<button class="active" onclick="setLeague('ALL')">Todos</button>
+<button onclick="setLeague('Brasileirão A')">Brasileirão A</button>
+<button onclick="setLeague('Brasileirão B')">Brasileirão B</button>
+<button onclick="setLeague('Copa do Brasil')">Copa do Brasil</button>
+<button onclick="setLeague('Libertadores')">Libertadores</button>
+<button onclick="setLeague('Sul-Americana')">Sul-Americana</button>
+<button onclick="setLeague('Champions League')">Champions</button>
+<button onclick="setLeague('Premier League')">Premier League</button>
+<button onclick="setLeague('La Liga')">La Liga</button>
+<button onclick="setLeague('Serie A')">Serie A</button>
+<button onclick="setLeague('Bundesliga')">Bundesliga</button>
+</div>
+<div class="tools"><input id="search" placeholder="Buscar time ou campeonato" oninput="render()"><select id="league" onchange="render()"><option value="ALL">Todos os campeonatos</option></select></div>
+<div class="row"><b id="count">0 jogos</b><span class="status" id="updated">Aguardando dados</span></div>
+<div id="notice" class="notice"></div><div id="games" class="games"></div>
+</section>
+<p class="status">As probabilidades são estimativas calculadas a partir dos dados disponíveis e não garantem o resultado da partida.</p>
 </main>
-<script src="/app.js"></script>
-  <script src="/probabilities.js"></script>
+<script>
+let games=[], selectedLeague='ALL', selectedDate=new Date().toISOString().slice(0,10);
+const API='/api/games';
+function dayISO(add){let d=new Date();d.setDate(d.getDate()+add);return d.toISOString().slice(0,10)}
+function buildDays(){let el=document.getElementById('days');el.innerHTML='';['Hoje','Amanhã','Depois de amanhã'].forEach((n,i)=>{let b=document.createElement('button');b.textContent=n;b.className=selectedDate===dayISO(i)?'active':'';b.onclick=()=>{selectedDate=dayISO(i);buildDays();loadGames()};el.appendChild(b)})}
+function setLeague(v){selectedLeague=v;render()}
+function confidence(p){let m=Math.max(p.home,p.draw,p.away);return m>=65?'ALTA CONFIANÇA':m>=50?'CONFIANÇA MÉDIA':'EQUILIBRADO'}
+function normalize(g){let p=g.probabilities||g.probs||{};return {league:g.league?.name||g.league||g.competition?.name||'Campeonato',home:g.home?.name||g.homeTeam?.name||g.home_name||'Casa',away:g.away?.name||g.awayTeam?.name||g.away_name||'Visitante',time:g.time||g.starting_at||g.utcDate||'',live:!!(g.live||g.is_live),score:g.score||'',p:{home:+(p.home||p.home_win||33),draw:+(p.draw||34),away:+(p.away||p.away_win||33)}}}
+async function loadGames(){let notice=document.getElementById('notice');notice.style.display='none';try{let r=await fetch(API+'?date='+selectedDate,{cache:'no-store'});if(!r.ok)throw new Error('API '+r.status);let data=await r.json();let arr=Array.isArray(data)?data:(data.games||data.data||[]);games=arr.map(normalize);document.getElementById('updated').textContent='Atualizado '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});render()}catch(e){games=[];notice.textContent='Não foi possível carregar os jogos online. O arquivo visual está correto, mas o endpoint /api/games precisa estar publicado e conectado às APIs de futebol.';notice.style.display='block';render()}}
+function render(){let q=document.getElementById('search').value.toLowerCase();let list=games.filter(g=>(selectedLeague==='ALL'||(selectedLeague==='LIVE'?g.live:g.league.includes(selectedLeague)))&&(`${g.home} ${g.away} ${g.league}`.toLowerCase().includes(q)));document.getElementById('count').textContent=list.length+' jogo'+(list.length===1?'':'s');let root=document.getElementById('games');root.innerHTML='';if(!list.length){root.innerHTML='<p class="status" style="text-align:center;padding:25px">Nenhum jogo encontrado neste filtro.</p>';return}let groups={};list.forEach(g=>(groups[g.league]??=[]).push(g));Object.entries(groups).forEach(([lg,arr])=>{root.insertAdjacentHTML('beforeend','<div class="league">'+lg+'</div>');arr.forEach(g=>root.insertAdjacentHTML('beforeend',`<div class="game"><div class="row"><div class="teams">${g.home} × ${g.away}</div><b>${g.live?'🔴 AO VIVO':''}</b></div><div class="meta">${g.time||'Horário a confirmar'} ${g.score?' • '+g.score:''}</div><div class="probs"><div class="prob">Casa<b>${g.p.home}%</b></div><div class="prob">Empate<b>${g.p.draw}%</b></div><div class="prob">Visitante<b>${g.p.away}%</b></div></div><div class="conf">🤖 ${confidence(g.p)}</div></div>`))})}
+buildDays();loadGames();setInterval(loadGames,60000);
+</script>
 </body></html>
