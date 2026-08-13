@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Football Signal AI v20</title><link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<main class="app">
+  <header class="top">
+    <div class="brand"><h1>⚽ Football Signal AI <span style="color:#ff4057">v20</span></h1><p>Agenda mundial • análise multi-fator • dados em tempo quase real</p></div>
+    <div class="robot"><span class="dot"></span><span id="robotText">ROBÔ ATIVO</span></div>
+  </header>
+
+  <section class="panel" id="configPanel">
+    <div class="panel-head"><h2>🔐 Fontes</h2><button class="btn ghost" id="toggleConfig">ocultar</button></div>
+    <div id="configBody">
+      <div class="config-grid">
+        <div class="field"><label>Sportmonks token</label><input id="sm" type="password" placeholder="Fonte principal"></div>
+        <div class="field"><label>football-data.org token</label><input id="fd" type="password" placeholder="Fallback de jogos"></div>
+        <div class="field"><label>The Odds API key</label><input id="odds" type="password" placeholder="Reservada para odds extra"></div>
+      </div>
+      <div class="actions"><button class="btn primary" id="save">Salvar e atualizar</button><button class="btn" id="clear">Apagar</button></div>
+      <div class="mut" style="margin-top:7px">Você também pode configurar as chaves como variáveis de ambiente na Vercel.</div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><h2>📅 Jogos</h2><span class="mut" id="updated">—</span></div>
+    <div class="days" id="days"></div>
+    <div class="tools"><input id="search" placeholder="Buscar time ou campeonato"><select id="league"><option value="">Todos os campeonatos</option></select></div>
+    <div class="summary"><b id="count">0 jogos</b><div class="source-badges" id="sources"></div></div>
+    <div id="games"><div class="empty">Configure uma fonte para carregar os jogos.</div></div>
+  </section>
+
+  <div class="footer">Probabilidades são estimativas, não garantias. “Alta confiança” significa maior cobertura e concordância entre os dados disponíveis — não certeza do resultado.</div>
+</main>
+<script src="/app.js"></script>
+</body></html>
