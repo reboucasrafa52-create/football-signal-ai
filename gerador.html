@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gerador Simples de Jogos</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#0d2c22;color:#f3ede0;font-family:Arial,sans-serif;padding:16px}.wrap{max-width:680px;margin:auto}h1{margin:0 0 6px;font-size:30px}.sub{color:#c9c2af;margin-bottom:16px}.top{display:grid;grid-template-columns:1fr 110px;gap:8px;margin-bottom:10px}input,button{min-height:44px;border-radius:9px;border:1px solid #345246;background:#081812;color:#f3ede0;padding:0 12px;font-size:14px}button{background:#f2c14e;color:#081812;font-weight:700}.filters{display:flex;gap:7px;overflow:auto;margin-bottom:14px}.filters button{background:#123d2f;color:#f3ede0;white-space:nowrap}.filters button.active{background:#f2c14e;color:#081812}.summary{font-size:12px;color:#c9c2af;margin-bottom:12px}.league{margin:16px 0 6px;color:#f2c14e;font-size:12px;font-weight:700;text-transform:uppercase}.game{background:#123d2f;border-left:4px solid #3fa66a;border-radius:8px;padding:10px;margin-bottom:7px}.teams{font-size:14px;font-weight:700}.meta,.source,.prob{font-size:11px;color:#c9c2af;margin-top:4px}.live{color:#e8503f;font-weight:700}.empty{padding:24px;background:#123d2f;border-radius:8px;text-align:center;color:#c9c2af}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Gerador Simples de Jogos</h1>
+  <div class="sub">Carrega todos os jogos encontrados pelas fontes conectadas para a data escolhida.</div>
+  <div class="top">
+    <input id="date" type="date">
+    <button onclick="loadGames()">GERAR</button>
+  </div>
+  <div class="filters">
+    <button class="active" data-f="all" onclick="setFilter('all',this)">Todos</button>
+    <button data-f="live" onclick="setFilter('live',this)">Ao vivo</button>
+    <button data-f="upcoming" onclick="setFilter('upcoming',this)">A seguir</button>
+    <button data-f="finished" onclick="setFilter('finished',this)">Finalizados</button>
+  </div>
+  <div id="summary" class="summary">Escolha a data e toque em GERAR.</div>
+  <div id="list"></div>
+</div>
+<script>
+let games=[],filter='all';
+const dateInput=document.getElementById('date');
+const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+dateInput.value=today;
+function esc(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function setFilter(f,b){filter=f;document.querySelectorAll('.filters button').forEach(x=>x.classList.remove('active'));b.classList.add('active');render()}
+function visible(g){if(filter==='live')return !!g.live;if(filter==='upcoming')return !g.live&&!g.finished;if(filter==='finished')return !!g.finished;return true}
+function time(g){if(!g.start)return '—';try{return new Intl.DateTimeFormat('pt-BR',{timeZone:'America/Sao_Paulo',hour:'2-digit',minute:'2-digit'}).format(new Date(g.start))}catch{return '—'}}
+function render(){const arr=games.filter(visible);document.getElementById('summary').textContent=`${arr.length} jogos exibidos · ${games.filter(g=>g.live).length} ao vivo · ${games.length} encontrados no total`;if(!arr.length){document.getElementById('list').innerHTML='<div class="empty">Nenhum jogo encontrado neste filtro.</div>';return}const groups={};for(const g of arr){const key=`${g.country||''} · ${g.league||'Futebol'}`;if(!groups[key])groups[key]=[];groups[key].push(g)}let html='';for(const [league,items] of Object.entries(groups)){html+=`<div class="league">${esc(league)}</div>`;for(const g of items){const src=(Array.isArray(g.sources)&&g.sources.length?g.sources:[g.provider]).filter(Boolean).join(' + ')||'não informada';const p=g.probabilities;html+=`<div class="game"><div class="teams">${esc(g.home?.name||'Casa')} x ${esc(g.away?.name||'Fora')}</div><div class="meta">${g.live?'<span class="live">AO VIVO</span> · ':''}${esc(g.state||'Agendado')} · ${time(g)}${g.score&&g.score.home!=null&&g.score.away!=null?` · ${g.score.home} x ${g.score.away}`:''}</div><div class="source">Fonte: ${esc(src)}</div>${p?`<div class="prob">Casa ${p.home}% · Empate ${p.draw}% · Fora ${p.away}%</div>`:'<div class="prob">Probabilidade: dados insuficientes</div>'}</div>`}}document.getElementById('list').innerHTML=html}
+async function loadGames(){const d=dateInput.value;if(!d)return;document.getElementById('summary').textContent='Carregando todas as fontes...';document.getElementById('list').innerHTML='';try{const r=await fetch(`/api/fixtures?date=${encodeURIComponent(d)}&_=${Date.now()}`,{cache:'no-store'});const j=await r.json();if(!r.ok)throw new Error(j.error||'Falha ao carregar');games=Array.isArray(j.games)?j.games:[];render()}catch(e){games=[];document.getElementById('summary').textContent='Erro ao carregar';document.getElementById('list').innerHTML=`<div class="empty">${esc(e.message)}</div>`}}
+loadGames();
+setInterval(()=>{if(dateInput.value===today)loadGames()},30000);
+</script>
+</body>
+</html>
